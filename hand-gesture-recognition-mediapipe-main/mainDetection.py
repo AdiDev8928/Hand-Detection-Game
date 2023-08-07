@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pygame
+import math
 import random as r
 import csv
 import copy
@@ -18,12 +19,34 @@ from model import PointHistoryClassifier
 
 pygame.init()
 
-randomIndex = 0
+#Enemies
+enemyImg = pygame.image.load('enemy.png')
+enemies = []
+enemyX = []
+enemyY = []
+enemyX_change = []
+enemyY_change = []
+
+#Number of Enemies in each Wave
+NumberOfEnemies = {
+    "Wave1" : 5,
+    "Wave2" : 8,
+    "Wave3" : 11,
+    "Wave4" : 14,
+    "Wave5" : 17
+}
+
+#Wave Counter
+waveCounter = 1
+
+#Display Game Screen
 screen = pygame.display.set_mode((670,600))
 
+#Player
 playerImg = pygame.image.load('player.png')
 playerX = 325
 playerY = 430
+
 
 bulletImg = pygame.image.load('Bullet.png')
 bulletX_default = 0
@@ -55,6 +78,53 @@ def fireBullet0(x,y):
         bulletY[0] = y
         screen.blit(bullets[0],(bulletX[0],bulletY[0]))
 
+def isCollision(enemyX,enemyY,bulletX,bulletY):
+    distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
+    if distance < 27:
+        return True
+    else:
+        return False
+
+def generateEnemy(numberOfEnemy):
+    for i in range(numberOfEnemy):
+        enemies.append(enemyImg)
+        enemyX.append(r.randint(0,630))
+        enemyY.append(r.randint(50,150))
+        enemyX_change.append(4)
+        enemyY_change.append(40)
+
+        enemyX[i] += enemyX_change[i]
+        if enemyX[i] <= 0:
+            enemyX_change[i] = 4
+            enemyY[i] += enemyY_change[i]
+        elif enemyX[i] >= 630:
+            enemyX_change[i] = -4
+            enemyY[i] += enemyY_change[i]
+        
+        collision = isCollision(enemyX[i],enemyY[i],bulletX[0],bulletY[0])
+        if collision:
+            enemyX[i] = r.randint(0,630)
+            enemyY[i] = r.randint(50,150)
+            bullet_states[0] = "ready"
+        
+        screen.blit(enemies[i],(enemyX[i],enemyY[i]))
+
+def incrementWaveCounter():
+    if enemies == []:
+        waveCounter += 1
+
+def generateWave():
+    if waveCounter == 1:
+        generateEnemy(NumberOfEnemies["Wave1"])
+    elif waveCounter == 2:
+        generateEnemy(NumberOfEnemies["Wave2"])
+    elif waveCounter == 3:
+        generateEnemy(NumberOfEnemies["Wave3"])
+    elif waveCounter == 4:
+        generateEnemy(NumberOfEnemies["Wave4"])
+    elif waveCounter == 5:
+        generateEnemy(NumberOfEnemies["Wave5"])
+        
 def checkBulletState0():
     if bullet_states[0] == "fire":
         screen.blit(bullets[0],(bulletX[0],bulletY[0]))
@@ -593,7 +663,6 @@ while running:
 
                 if handSign_text == "Open":
                     fireBullet0(playerX,playerY)
-
                 
         else:
             point_history.append([0, 0])
@@ -602,6 +671,8 @@ while running:
         debug_image = draw_info(debug_image, fps, mode, number)
 
         checkBulletState0()
+        generateWave()
+        incrementWaveCounter()
 
         # Screen reflection #############################################################
         cv.imshow('Hand Gesture Recognition', debug_image)
