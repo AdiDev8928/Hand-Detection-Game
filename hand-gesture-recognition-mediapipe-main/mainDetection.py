@@ -19,6 +19,8 @@ from model import PointHistoryClassifier
 
 pygame.init()
 
+count = 0
+
 #Enemies
 enemyImg = pygame.image.load('enemy.png')
 enemies = []
@@ -26,14 +28,15 @@ enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
+enemyTags = []
 
 #Number of Enemies in each Wave
 NumberOfEnemies = {
     "Wave1" : 5,
-    "Wave2" : 8,
-    "Wave3" : 11,
-    "Wave4" : 14,
-    "Wave5" : 17
+    "Wave2" : 12,
+    "Wave3" : 20,
+    "Wave4" : 30,
+    "Wave5" : 45
 }
 
 #Wave Counter
@@ -47,6 +50,7 @@ playerImg = pygame.image.load('player.png')
 playerX = 325
 playerY = 430
 
+mask = pygame.Surface((180,100),pygame.SRCALPHA)
 
 bulletImg = pygame.image.load('Bullet.png')
 bulletX_default = 0
@@ -92,6 +96,7 @@ def generateEnemy(numberOfEnemy):
         enemyY.append(r.randint(50,150))
         enemyX_change.append(4)
         enemyY_change.append(40)
+        enemyTags.append("Enemy" + str(i))
 
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
@@ -102,16 +107,24 @@ def generateEnemy(numberOfEnemy):
             enemyY[i] += enemyY_change[i]
         
         collision = isCollision(enemyX[i],enemyY[i],bulletX[0],bulletY[0])
-        if collision:
-            enemyX[i] = r.randint(0,630)
-            enemyY[i] = r.randint(50,150)
+        if collision and enemyTags[i] != "":
+            enemies[i] = pygame.image.load('BlackBG.png')
+            enemyX_change[i] = 0
+            enemyTags[i] = ""
+            global count
+            count = count + 1
             bullet_states[0] = "ready"
         
         screen.blit(enemies[i],(enemyX[i],enemyY[i]))
 
 def incrementWaveCounter():
-    if enemies == []:
-        waveCounter += 1
+    global waveCounter
+    if count == NumberOfEnemies["Wave1"]:
+        waveCounter = 2
+    elif count == NumberOfEnemies["Wave2"]:
+        waveCounter = 3
+    elif count == NumberOfEnemies["Wave3"]:
+        waveCounter = 4
 
 def generateWave():
     if waveCounter == 1:
